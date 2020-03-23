@@ -16,12 +16,13 @@ class EventList
   private:
     int currentPos;
     int maxSize;
-    int events[];
+    int *events;
 };
 
 EventList::EventList(int listSize){
   currentPos = 0;
   maxSize = listSize;
+  events = (int *) malloc(sizeof(int) * maxSize);
 }
 
 void EventList::initEvents(int len){
@@ -33,14 +34,7 @@ void EventList::initEvents(int len){
 // Adds an event into the right place in the array to keep order
 bool EventList::addEvent(int event){
   if (currentPos < maxSize){
-    int pos = 0;
-    while (event > events[pos] && pos < currentPos){
-      pos++;
-    }
-    for (int i = currentPos; i > pos; i--){
-      events[i] = events[i-1];
-    }
-    events[pos] = event;
+    events[currentPos] = event;
     currentPos++;
     return true;
   }

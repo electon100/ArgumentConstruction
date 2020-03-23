@@ -59,3 +59,22 @@ bool anyButton(){
   buttonA();
   return true;
 }
+
+int whichButton(){
+  while (true){
+    if (M5.BtnA.wasReleased()) {
+      while(M5.BtnA.wasReleased()) M5.update();
+      return 0;
+    }
+    else if (M5.BtnB.wasReleased()) {
+      while(M5.BtnB.wasReleased()) M5.update();
+      return 1;
+    }
+    else if (M5.BtnC.wasReleased()) {
+      while(M5.BtnC.wasReleased()) M5.update();
+      return 2;
+    }
+    else M5.update();
+  }
+  return -1;
+}
