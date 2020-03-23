@@ -4,6 +4,11 @@
 #include "eventList.h"
 #include "SoftwareSerial.h"
 
+#define EVENTS 10
+
+EventList forList = EventList(EVENTS);
+EventList againstList = EventList(EVENTS);
+
 SoftwareSerial rfid(3, 1); // RX, TX
 
 const PROGMEM char* question1 = "In this year, Charles I\nbecame the second Stuart\nKing, after the death of\nhis father James I";
