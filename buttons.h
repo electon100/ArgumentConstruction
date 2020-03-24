@@ -5,6 +5,7 @@ bool buttonA(){
     else if (M5.BtnC.wasReleased()) return false;
     else M5.update();
   }
+  while (M5.BtnA.wasReleased()) M5.update();
   return true;
 }
 
@@ -15,6 +16,7 @@ bool buttonB(){
     else if (M5.BtnC.wasReleased()) return false;
     else M5.update();
   }
+  while (M5.BtnB.wasReleased()) M5.update();
   return true;
 }
 
@@ -25,6 +27,7 @@ bool buttonC(){
     else if (M5.BtnB.wasReleased()) return false;
     else M5.update();
   }
+  while (M5.BtnC.wasReleased()) M5.update();
   return true;
 } 
 

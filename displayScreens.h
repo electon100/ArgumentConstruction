@@ -1,7 +1,17 @@
+void quoteScreen(const char* quote){
+  M5.Lcd.fillScreen(BLACK);
+  M5.Lcd.setCursor(0, 0);
+  M5.Lcd.printf("Your quote is:");
+  M5.lcd.setCursor(0, 20);
+  M5.Lcd.printf(quote);
+  M5.Lcd.setCursor(0, 200);
+  M5.Lcd.printf("Press the middle button\nwhen ready to continue...");
+}
+
 void displayEvent(const char* question){
   M5.Lcd.fillScreen(BLACK);
   M5.Lcd.setCursor(0, 0);
-  M5.Lcd.print(question);
+  M5.Lcd.printf(question);
   M5.Lcd.setCursor(50, 220);
   M5.Lcd.setTextColor(GREEN);
   M5.Lcd.printf("FOR");
@@ -50,4 +60,44 @@ void forAgainst(const char* forList[], const char* againstList[], int forLength,
   // Write user prompt
   M5.Lcd.setCursor(0, 210);
   M5.Lcd.printf("Scan an event to add it...");
+}
+
+void argumentScreen(const char* discardList[], const char* argumentList[], const int colours[], int discardPos, int argumentPos){
+  // Initialise screen
+  M5.Lcd.fillScreen(BLACK);
+  M5.Lcd.setCursor(0, 0);
+
+  // Draw dividing lines
+  M5.Lcd.drawLine(160, 0, 160, 200, WHITE);
+  M5.Lcd.drawLine(0, 20, 320, 20, WHITE);
+
+  // Write column titles
+  M5.Lcd.setCursor(30, 0);
+  M5.Lcd.setTextColor(GREEN);
+  M5.Lcd.printf("ARGUMENT");
+  M5.Lcd.setCursor(190, 0);
+  M5.Lcd.setTextColor(BLUE);
+  M5.Lcd.printf("DISCARDED");
+
+  // Write argument and discarded lists
+  int argPos = 25;
+  int disPos = 25;
+  for (int i = 0; i < argumentPos; i++){
+    M5.Lcd.setCursor(0, argPos);
+    M5.Lcd.setTextColor(colours[i]);
+    M5.Lcd.printf(argumentList[i]);
+    argPos += 20;
+  }
+  M5.Lcd.setTextColor(BLUE);
+  for (int i = 0; i < discardPos; i++){
+    M5.Lcd.setCursor(161, disPos);
+    M5.Lcd.printf(discardList[i]);
+    disPos += 20;
+  }
+
+  M5.Lcd.setTextColor(WHITE);
+  
+  // Write user prompt
+  M5.Lcd.setCursor(0, 205);
+  M5.Lcd.printf("Scan an event to add it toyour argument...");
 }

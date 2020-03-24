@@ -9,6 +9,7 @@
 EventList forList = EventList(EVENTS);
 EventList againstList = EventList(EVENTS);
 EventList discardList = EventList(EVENTS);
+EventList argumentList = EventList(EVENTS);
 
 SoftwareSerial rfid(3, 1); // RX, TX
 
@@ -112,10 +113,12 @@ void setup() {
 }
 
 void loop() {
-  Serial.println("For list");
-  forList.showList();
-  Serial.println("Against list");
-  againstList.showList();
+//  Serial.println("For list");
+//  forList.showList();
+//  Serial.println("Against list");
+//  againstList.showList();
+  quoteScreen("'Parliament was the main\ncause of disagreements\nbefore the Civil War.'");
+  waitOnButton('b');
   if (state == 0){
     int forPos = 0;
     int againstPos = 0;
@@ -135,8 +138,36 @@ void loop() {
     int event = waitForEvent();
     displayEvent(QUESTIONS[event]);
     separate(event);
+    if (forList.getSize()+againstList.getSize()+discardList.getSize() == EVENTS) state++;
   }
-  else{
-    
+  
+  else if (state == 1){
+    int discardPos = 0;
+    int argumentPos = 0;
+    const char* discardDisplays[EVENTS] = {};
+    const char* argumentDisplays[EVENTS] = {};
+    int colours[EVENTS] = {};
+    for (int i = 0; i < EVENTS; i++){
+      if (discardList.itemInList(i)){
+        discardDisplays[discardPos] = DESCRIPTIONS[i];
+        discardPos++; 
+      }
+      if (forList.itemInList(i)){
+        argumentDisplays[argumentPos] = DESCRIPTIONS[i];
+        colours[argumentPos] = GREEN;
+        argumentPos++;
+      }
+      if (againstList.itemInList(i)){
+        argumentDisplays[argumentPos] = DESCRIPTIONS[i];
+        colours[argumentPos] = RED;
+        argumentPos++;
+      }
+    }
+    argumentScreen(discardDisplays, argumentDisplays, colours, discardPos, argumentPos);
+    int event = waitForEvent();
+    if (!argumentList.itemInList(event)){
+      argumentList.addEvent(event);
+      if (discardList.itemInList(event)) discardList.removeEvent(event);
+    }
   }
 }
