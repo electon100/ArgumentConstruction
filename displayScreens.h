@@ -24,6 +24,59 @@ void displayEvent(const char* question){
   M5.Lcd.setTextColor(WHITE);
 }
 
+void eventChange(const char* question){
+  M5.Lcd.fillScreen(BLACK);
+  M5.Lcd.setCursor(0, 0);
+  M5.Lcd.printf(question);
+  M5.Lcd.setCursor(50, 220);
+  M5.Lcd.printf("BACK");
+  M5.Lcd.setCursor(125, 200);
+  M5.Lcd.printf("CHANGE");
+  M5.Lcd.setCursor(140, 220);
+  M5.Lcd.printf("SIDE");
+  M5.Lcd.setCursor(220, 200);
+  M5.Lcd.printf("CHANGE");
+  M5.Lcd.setCursor(225, 220);
+  M5.Lcd.printf("PLACE");
+}
+
+void changeSide(const char* question, int side){
+  M5.Lcd.fillScreen(BLACK);
+  M5.Lcd.setCursor(0, 0);
+  M5.Lcd.printf(question);
+
+  M5.Lcd.setCursor(0, 180);
+  M5.Lcd.setTextColor(side);
+  switch (side){
+    case GREEN:
+      M5.Lcd.printf("Currently FOR");
+      break;
+    case RED:
+      M5.Lcd.printf("Currently AGAINST");
+      break;
+    case BLUE:
+      M5.Lcd.printf("Currently DISCARDED");
+      break;
+  }
+  
+  M5.Lcd.setCursor(50, 220);
+  M5.Lcd.setTextColor(GREEN);
+  M5.Lcd.printf("FOR");
+  M5.Lcd.setCursor(120, 220);
+  M5.Lcd.setTextColor(BLUE);
+  M5.Lcd.printf("DISCARD");
+  M5.Lcd.setCursor(215, 220);
+  M5.Lcd.setTextColor(RED);
+  M5.Lcd.printf("AGAINST");
+  M5.Lcd.setTextColor(WHITE);
+}
+
+void changePlace(const char* question){
+  M5.Lcd.fillScreen(BLACK);
+  M5.Lcd.setCursor(0, 0);
+  M5.Lcd.printf(question);
+}
+
 void forAgainst(const char* forList[], const char* againstList[], int forLength, int againstLength){
   // Initialise screen
   M5.Lcd.fillScreen(BLACK);
@@ -99,5 +152,5 @@ void argumentScreen(const char* discardList[], const char* argumentList[], const
   
   // Write user prompt
   M5.Lcd.setCursor(0, 205);
-  M5.Lcd.printf("Scan an event to add it toyour argument...");
+  M5.Lcd.printf("Scan an event to change\nits position...");
 }

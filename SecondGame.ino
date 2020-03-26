@@ -9,7 +9,6 @@
 EventList forList = EventList(EVENTS);
 EventList againstList = EventList(EVENTS);
 EventList discardList = EventList(EVENTS);
-EventList argumentList = EventList(EVENTS);
 
 SoftwareSerial rfid(3, 1); // RX, TX
 
@@ -49,7 +48,7 @@ const PROGMEM char* allowedTags[10] = {
   "0600B3CC6D\0"
 };
 
-int state = 0;
+int state = 1;
 
 // If a given tag is in the list of allowedTags, returns its index, otherwise returns -1
 int tagInEvents(char tag[]){
@@ -165,9 +164,25 @@ void loop() {
     }
     argumentScreen(discardDisplays, argumentDisplays, colours, discardPos, argumentPos);
     int event = waitForEvent();
-    if (!argumentList.itemInList(event)){
-      argumentList.addEvent(event);
-      if (discardList.itemInList(event)) discardList.removeEvent(event);
+    eventChange(QUESTIONS[event]);
+    int choice = whichButton();
+    switch (choice){
+      case 1:
+        changeSide(QUESTIONS[event], colours[event]);
+        {
+          int newSide = whichButton();
+          forList.removeEvent(event);
+          againstList.removeEvent(event);
+          discardList.removeEvent(event);
+          if (newSide == 0) forList.addEvent(event);
+          else if (newSide == 1) discardList.addEvent(event);
+          else if (newSide == 2) againstList.addEvent(event);
+        }
+        break;
+      case 2:
+        changePlace(QUESTIONS[event]);
+        waitOnButton('b');
+        break;
     }
   }
 }
