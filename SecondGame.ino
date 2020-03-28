@@ -102,6 +102,41 @@ void separate(int event){
   }
 }
 
+void changeSideLogic(int event){
+  int newSide = whichButton();
+  forList.removeEvent(event);
+  againstList.removeEvent(event);
+  discardList.removeEvent(event);
+  if (newSide == 0) forList.addEvent(event);
+  else if (newSide == 1) discardList.addEvent(event);
+  else if (newSide == 2) againstList.addEvent(event);
+}
+
+void arrayUpdate(int old, int newPos){
+  QUESTIONS[old] = QUESTIONS[newPos];
+  DESCRIPTIONS[old] = DESCRIPTIONS[newPos];
+  allowedTags[old] = allowedTags[newPos];
+}
+
+void updateEventLists(int old, int newPos){
+  if (forList.itemInList(old)){
+    forList.removeEvent(old);
+    forList.addEvent(newPos);
+  }
+  else if(againstList.itemInList(old)){
+    againstList.removeEvent(old);
+    againstList.addEvent(newPos);
+  }
+}
+
+void reinsertItem(bool inFor, int listOffset, int eventOffset, int newEvent, const char* question, const char* description, const char* tag){
+  if (inFor) forList.addEvent(newEvent+listOffset);
+  else againstList.addEvent(newEvent+listOffset);
+  QUESTIONS[newEvent+eventOffset] = question;
+  DESCRIPTIONS[newEvent+eventOffset] = description;
+  allowedTags[newEvent+eventOffset] = tag;
+}
+
 void setup() {
   M5.begin();
   M5.Lcd.fillScreen(BLACK);
@@ -172,15 +207,7 @@ void loop() {
     switch (choice){
       case 1:
         changeSide(QUESTIONS[event], colours[event]);
-        {
-          int newSide = whichButton();
-          forList.removeEvent(event);
-          againstList.removeEvent(event);
-          discardList.removeEvent(event);
-          if (newSide == 0) forList.addEvent(event);
-          else if (newSide == 1) discardList.addEvent(event);
-          else if (newSide == 2) againstList.addEvent(event);
-        }
+        changeSideLogic(event);
         break;
       case 2:
         changePlace(QUESTIONS[event]);
@@ -192,90 +219,41 @@ void loop() {
           const char* description = DESCRIPTIONS[event];
           const char* tag = allowedTags[event];
           bool inFor = false;
-          if (forList.itemInList(event)) {
-            forList.removeEvent(event);
-            inFor = true;
+          if (choice != 1){
+            if (forList.itemInList(event)) {
+              forList.removeEvent(event);
+              inFor = true;
+            }
+            else if (againstList.itemInList(event)) againstList.removeEvent(event);
           }
-          else if (againstList.itemInList(event)) againstList.removeEvent(event);
+                    
           if (choice == 0 && event > newEvent){
             for (int i = event; i > newEvent; i--){
-              QUESTIONS[i] = QUESTIONS[i-1];
-              DESCRIPTIONS[i] = DESCRIPTIONS[i-1];
-              allowedTags[i] = allowedTags[i-1];
-              if (forList.itemInList(i-1)){
-                forList.removeEvent(i-1);
-                forList.addEvent(i);
-              }
-              else if(againstList.itemInList(i-1)){
-                againstList.removeEvent(i-1);
-                againstList.addEvent(i);
-              }
+              arrayUpdate(i, i-1);
+              updateEventLists(i-1, i);
             }
-            if (inFor) forList.addEvent(newEvent);
-            else againstList.addEvent(newEvent);
-            QUESTIONS[newEvent] = question;
-            DESCRIPTIONS[newEvent] = description;
-            allowedTags[newEvent] = tag;
+            reinsertItem(inFor, 0, 0, newEvent, question, description, tag);
           }
           else if (choice == 0 && event < newEvent){
             for (int i = event; i < newEvent; i++){
-              QUESTIONS[i] = QUESTIONS[i+1];
-              DESCRIPTIONS[i] = DESCRIPTIONS[i+1];
-              allowedTags[i] = allowedTags[i+1];
-              if (forList.itemInList(i+1)){
-                forList.removeEvent(i+1);
-                forList.addEvent(i);
-              }
-              else if(againstList.itemInList(i+1)){
-                againstList.removeEvent(i+1);
-                againstList.addEvent(i);
-              }
+              arrayUpdate(i, i+1);
+              updateEventLists(i+1, i);
             }
-            if (inFor) forList.addEvent(newEvent);
-            else againstList.addEvent(newEvent);
-            QUESTIONS[newEvent-1] = question;
-            DESCRIPTIONS[newEvent-1] = description;
-            allowedTags[newEvent-1] = tag;
+            reinsertItem(inFor, 0, -1, newEvent, question, description, tag);
           }
           else if (choice == 2 && event > newEvent){
             for (int i = event; i > newEvent+1; i--){
-              QUESTIONS[i] = QUESTIONS[i-1];
-              DESCRIPTIONS[i] = DESCRIPTIONS[i-1];
-              allowedTags[i] = allowedTags[i-1];
-              if (forList.itemInList(i-1)){
-                forList.removeEvent(i-1);
-                forList.addEvent(i);
-              }
-              else if(againstList.itemInList(i-1)){
-                againstList.removeEvent(i-1);
-                againstList.addEvent(i);
-              }
+              arrayUpdate(i, i-1);
+              updateEventLists(i-1, i);
             }
-            if (inFor) forList.addEvent(newEvent+1);
-            else againstList.addEvent(newEvent+1);
-            QUESTIONS[newEvent+1] = question;
-            DESCRIPTIONS[newEvent+1] = description;
-            allowedTags[newEvent+1] = tag;
+            reinsertItem(inFor, 1, 1, newEvent, question, description, tag);
           }
           else if (choice == 2 && event < newEvent){
             for (int i = event; i < newEvent; i++){
-              QUESTIONS[i] = QUESTIONS[i+1];
-              DESCRIPTIONS[i] = DESCRIPTIONS[i+1];
-              allowedTags[i] = allowedTags[i+1];
-              if (forList.itemInList(i+1)){
-                forList.removeEvent(i+1);
-                forList.addEvent(i);
-              }
-              else if(againstList.itemInList(i+1)){
-                againstList.removeEvent(i+1);
-                againstList.addEvent(i);
-              }
+              arrayUpdate(i, i+1);
+              updateEventLists(i+1, i);
             }
-            if (inFor) forList.addEvent(newEvent);
-            else againstList.addEvent(newEvent);
-            QUESTIONS[newEvent] = question;
-            DESCRIPTIONS[newEvent] = description;
-            allowedTags[newEvent] = tag;
+            reinsertItem(inFor, 0, 0, newEvent, question, description, tag);
           }
         }
         break;
