@@ -48,7 +48,7 @@ const char* allowedTags[10] = {
   "0600B3CC6D\0"
 };
 
-int state = 1;
+int state = 0;
 
 // If a given tag is in the list of allowedTags, returns its index, otherwise returns -1
 int tagInEvents(char tag[]){
@@ -102,6 +102,24 @@ void separate(int event){
   }
 }
 
+void forAgainstDisplay(){
+  int forPos = 0;
+  int againstPos = 0;
+  const char* forDisplays[EVENTS] = {};
+  const char* againstDisplays[EVENTS] = {};
+  for (int i = 0; i < EVENTS; i++){
+    if (forList.itemInList(i)){
+      forDisplays[forPos] = DESCRIPTIONS[i];
+      forPos++;
+    }
+    if (againstList.itemInList(i)){
+      againstDisplays[againstPos] = DESCRIPTIONS[i];
+      againstPos++;
+    }
+  }
+  forAgainst(forDisplays, againstDisplays, forPos, againstPos);
+}
+
 void changeSideLogic(int event){
   int newSide = whichButton();
   forList.removeEvent(event);
@@ -137,6 +155,52 @@ void reinsertItem(bool inFor, int listOffset, int eventOffset, int newEvent, con
   allowedTags[newEvent+eventOffset] = tag;
 }
 
+void changePlaceLogic(int event){
+  int newEvent = waitForEvent();
+  whichSide(QUESTIONS[newEvent], DESCRIPTIONS[event]);
+  int choice = whichButton();
+  const char* question = QUESTIONS[event];
+  const char* description = DESCRIPTIONS[event];
+  const char* tag = allowedTags[event];
+  bool inFor = false;
+  if (choice != 1){
+    if (forList.itemInList(event)) {
+      forList.removeEvent(event);
+      inFor = true;
+    }
+    else if (againstList.itemInList(event)) againstList.removeEvent(event);
+  }
+                    
+  if (choice == 0 && event > newEvent){
+    for (int i = event; i > newEvent; i--){
+      arrayUpdate(i, i-1);
+      updateEventLists(i-1, i);
+    }
+    reinsertItem(inFor, 0, 0, newEvent, question, description, tag);
+  }
+  else if (choice == 0 && event < newEvent){
+    for (int i = event; i < newEvent; i++){
+      arrayUpdate(i, i+1);
+      updateEventLists(i+1, i);
+    }
+    reinsertItem(inFor, 0, -1, newEvent, question, description, tag);
+  }
+  else if (choice == 2 && event > newEvent){
+    for (int i = event; i > newEvent+1; i--){
+      arrayUpdate(i, i-1);
+      updateEventLists(i-1, i);
+    }
+    reinsertItem(inFor, 1, 1, newEvent, question, description, tag);
+  }
+  else if (choice == 2 && event < newEvent){
+    for (int i = event; i < newEvent; i++){
+      arrayUpdate(i, i+1);
+      updateEventLists(i+1, i);
+    }
+    reinsertItem(inFor, 0, 0, newEvent, question, description, tag);
+  }
+}
+
 void setup() {
   M5.begin();
   M5.Lcd.fillScreen(BLACK);
@@ -156,21 +220,7 @@ void loop() {
 
   // The event separation phase where events are added to for, against, or discard lists
   if (state == 0){
-    int forPos = 0;
-    int againstPos = 0;
-    const char* forDisplays[EVENTS] = {};
-    const char* againstDisplays[EVENTS] = {};
-    for (int i = 0; i < EVENTS; i++){
-      if (forList.itemInList(i)){
-        forDisplays[forPos] = DESCRIPTIONS[i];
-        forPos++;
-      }
-      if (againstList.itemInList(i)){
-        againstDisplays[againstPos] = DESCRIPTIONS[i];
-        againstPos++;
-      }
-    }
-    forAgainst(forDisplays, againstDisplays, forPos, againstPos);
+    forAgainstDisplay();
     int event = waitForEvent();
     displayEvent(QUESTIONS[event]);
     separate(event);
@@ -211,51 +261,7 @@ void loop() {
         break;
       case 2:
         changePlace(QUESTIONS[event]);
-        {
-          int newEvent = waitForEvent();
-          whichSide(QUESTIONS[newEvent], DESCRIPTIONS[event]);
-          int choice = whichButton();
-          const char* question = QUESTIONS[event];
-          const char* description = DESCRIPTIONS[event];
-          const char* tag = allowedTags[event];
-          bool inFor = false;
-          if (choice != 1){
-            if (forList.itemInList(event)) {
-              forList.removeEvent(event);
-              inFor = true;
-            }
-            else if (againstList.itemInList(event)) againstList.removeEvent(event);
-          }
-                    
-          if (choice == 0 && event > newEvent){
-            for (int i = event; i > newEvent; i--){
-              arrayUpdate(i, i-1);
-              updateEventLists(i-1, i);
-            }
-            reinsertItem(inFor, 0, 0, newEvent, question, description, tag);
-          }
-          else if (choice == 0 && event < newEvent){
-            for (int i = event; i < newEvent; i++){
-              arrayUpdate(i, i+1);
-              updateEventLists(i+1, i);
-            }
-            reinsertItem(inFor, 0, -1, newEvent, question, description, tag);
-          }
-          else if (choice == 2 && event > newEvent){
-            for (int i = event; i > newEvent+1; i--){
-              arrayUpdate(i, i-1);
-              updateEventLists(i-1, i);
-            }
-            reinsertItem(inFor, 1, 1, newEvent, question, description, tag);
-          }
-          else if (choice == 2 && event < newEvent){
-            for (int i = event; i < newEvent; i++){
-              arrayUpdate(i, i+1);
-              updateEventLists(i+1, i);
-            }
-            reinsertItem(inFor, 0, 0, newEvent, question, description, tag);
-          }
-        }
+        changePlaceLogic(event);
         break;
     }
   }
