@@ -12,19 +12,19 @@ EventList discardList = EventList(EVENTS);
 
 SoftwareSerial rfid(3, 1); // RX, TX
 
-const PROGMEM char* question1 = "In this year, Charles I\nbecame the second Stuart\nKing, after the death of\nhis father James I";
-const PROGMEM char* question2 = "Soon after his coronation as king, Parliament\nprevented Charles I from\ncollecting Tonnage and\nPoundage for more than oneyear";
-const PROGMEM char* question3 = "Charles I needed money\nbefore he could fight withFrance and Spain, so he\nused a Forced Loan to\nraise money from the\nnobility";
-const PROGMEM char* question4 = "Five members of the\nnobility took the king to court over their imprison-ment for refusing to pay\nthe Forced Loan, but the\nking won";
-const PROGMEM char* question5 = "Parliament was dissolved\nafter it tried to intro-\nduce measures against\nTonnage and Poundage,\nstarting the Personal Rule";
-const PROGMEM char* question6 = "Ship Money was introduced for inland towns to raise money during the Personal Rule";
-const PROGMEM char* question7 = "The New Book of Common\nPrayer was introduced in\nScotland, causing riots\nthat led to the First\nBishops' War";
-const PROGMEM char* question8 = "The Short Parliament was\ncalled to raise money for the Second Bishops' War,\nending the Personal Rule";
-const PROGMEM char* question9 = "The Grand Remonstrance wasrejected by Charles duringthe Long Parliament, so\ncalled because it lasted\nlonger than the Short\nParliament";
-const PROGMEM char* question10 = "The English Civil Wars\nbegan when Charles raised his standard in Nottingham";
+const char* question1 = "In this year, Charles I\nbecame the second Stuart\nKing, after the death of\nhis father James I";
+const char* question2 = "Soon after his coronation as king, Parliament\nprevented Charles I from\ncollecting Tonnage and\nPoundage for more than oneyear";
+const char* question3 = "Charles I needed money\nbefore he could fight withFrance and Spain, so he\nused a Forced Loan to\nraise money from the\nnobility";
+const char* question4 = "Five members of the\nnobility took the king to court over their imprison-ment for refusing to pay\nthe Forced Loan, but the\nking won";
+const char* question5 = "Parliament was dissolved\nafter it tried to intro-\nduce measures against\nTonnage and Poundage,\nstarting the Personal Rule";
+const char* question6 = "Ship Money was introduced for inland towns to raise money during the Personal Rule";
+const char* question7 = "The New Book of Common\nPrayer was introduced in\nScotland, causing riots\nthat led to the First\nBishops' War";
+const char* question8 = "The Short Parliament was\ncalled to raise money for the Second Bishops' War,\nending the Personal Rule";
+const char* question9 = "The Grand Remonstrance wasrejected by Charles duringthe Long Parliament, so\ncalled because it lasted\nlonger than the Short\nParliament";
+const char* question10 = "The English Civil Wars\nbegan when Charles raised his standard in Nottingham";
 
-const PROGMEM char* QUESTIONS[EVENTS] = {question1, question2, question3, question4, question5, question6, question7, question8, question9, question10};
-const PROGMEM char* DESCRIPTIONS[EVENTS] = {"Coronation", 
+const char* QUESTIONS[EVENTS] = {question1, question2, question3, question4, question5, question6, question7, question8, question9, question10};
+const char* DESCRIPTIONS[EVENTS] = {"Coronation", 
                                             "Ton. + Pound.",
                                             "Forced Loan",
                                             "Five Knight's",
@@ -35,7 +35,7 @@ const PROGMEM char* DESCRIPTIONS[EVENTS] = {"Coronation",
                                             "Long Parl.",
                                             "Civil War"};
 
-const PROGMEM char* allowedTags[10] = {
+const char* allowedTags[10] = {
   "0600B48BC4\0",
   "0600B3E375\0",
   "0600B498C4\0",
@@ -112,12 +112,14 @@ void setup() {
 }
 
 void loop() {
-//  Serial.println("For list");
-//  forList.showList();
-//  Serial.println("Against list");
-//  againstList.showList();
+  Serial.println("ForList:");
+  forList.showList();
+  Serial.println("AgainstList:");
+  againstList.showList();
   quoteScreen("'Parliament was the main\ncause of disagreements\nbefore the Civil War.'");
   waitOnButton('b');
+
+  // The event separation phase where events are added to for, against, or discard lists
   if (state == 0){
     int forPos = 0;
     int againstPos = 0;
@@ -139,7 +141,8 @@ void loop() {
     separate(event);
     if (forList.getSize()+againstList.getSize()+discardList.getSize() == EVENTS) state++;
   }
-  
+
+  // The argument arrangement phase. Events are automatically in chronological order, but can be arranged
   else if (state == 1){
     int discardPos = 0;
     int argumentPos = 0;
@@ -181,7 +184,100 @@ void loop() {
         break;
       case 2:
         changePlace(QUESTIONS[event]);
-        waitOnButton('b');
+        {
+          int newEvent = waitForEvent();
+          whichSide(QUESTIONS[newEvent], DESCRIPTIONS[event]);
+          int choice = whichButton();
+          const char* question = QUESTIONS[event];
+          const char* description = DESCRIPTIONS[event];
+          const char* tag = allowedTags[event];
+          bool inFor = false;
+          if (forList.itemInList(event)) {
+            forList.removeEvent(event);
+            inFor = true;
+          }
+          else if (againstList.itemInList(event)) againstList.removeEvent(event);
+          if (choice == 0 && event > newEvent){
+            for (int i = event; i > newEvent; i--){
+              QUESTIONS[i] = QUESTIONS[i-1];
+              DESCRIPTIONS[i] = DESCRIPTIONS[i-1];
+              allowedTags[i] = allowedTags[i-1];
+              if (forList.itemInList(i-1)){
+                forList.removeEvent(i-1);
+                forList.addEvent(i);
+              }
+              else if(againstList.itemInList(i-1)){
+                againstList.removeEvent(i-1);
+                againstList.addEvent(i);
+              }
+            }
+            if (inFor) forList.addEvent(newEvent);
+            else againstList.addEvent(newEvent);
+            QUESTIONS[newEvent] = question;
+            DESCRIPTIONS[newEvent] = description;
+            allowedTags[newEvent] = tag;
+          }
+          else if (choice == 0 && event < newEvent){
+            for (int i = event; i < newEvent; i++){
+              QUESTIONS[i] = QUESTIONS[i+1];
+              DESCRIPTIONS[i] = DESCRIPTIONS[i+1];
+              allowedTags[i] = allowedTags[i+1];
+              if (forList.itemInList(i+1)){
+                forList.removeEvent(i+1);
+                forList.addEvent(i);
+              }
+              else if(againstList.itemInList(i+1)){
+                againstList.removeEvent(i+1);
+                againstList.addEvent(i);
+              }
+            }
+            if (inFor) forList.addEvent(newEvent);
+            else againstList.addEvent(newEvent);
+            QUESTIONS[newEvent-1] = question;
+            DESCRIPTIONS[newEvent-1] = description;
+            allowedTags[newEvent-1] = tag;
+          }
+          else if (choice == 2 && event > newEvent){
+            for (int i = event; i > newEvent+1; i--){
+              QUESTIONS[i] = QUESTIONS[i-1];
+              DESCRIPTIONS[i] = DESCRIPTIONS[i-1];
+              allowedTags[i] = allowedTags[i-1];
+              if (forList.itemInList(i-1)){
+                forList.removeEvent(i-1);
+                forList.addEvent(i);
+              }
+              else if(againstList.itemInList(i-1)){
+                againstList.removeEvent(i-1);
+                againstList.addEvent(i);
+              }
+            }
+            if (inFor) forList.addEvent(newEvent+1);
+            else againstList.addEvent(newEvent+1);
+            QUESTIONS[newEvent+1] = question;
+            DESCRIPTIONS[newEvent+1] = description;
+            allowedTags[newEvent+1] = tag;
+          }
+          else if (choice == 2 && event < newEvent){
+            for (int i = event; i < newEvent; i++){
+              QUESTIONS[i] = QUESTIONS[i+1];
+              DESCRIPTIONS[i] = DESCRIPTIONS[i+1];
+              allowedTags[i] = allowedTags[i+1];
+              if (forList.itemInList(i+1)){
+                forList.removeEvent(i+1);
+                forList.addEvent(i);
+              }
+              else if(againstList.itemInList(i+1)){
+                againstList.removeEvent(i+1);
+                againstList.addEvent(i);
+              }
+            }
+            if (inFor) forList.addEvent(newEvent);
+            else againstList.addEvent(newEvent);
+            QUESTIONS[newEvent] = question;
+            DESCRIPTIONS[newEvent] = description;
+            allowedTags[newEvent] = tag;
+          }
+        }
         break;
     }
   }

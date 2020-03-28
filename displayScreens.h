@@ -75,6 +75,23 @@ void changePlace(const char* question){
   M5.Lcd.fillScreen(BLACK);
   M5.Lcd.setCursor(0, 0);
   M5.Lcd.printf(question);
+
+  M5.Lcd.setCursor(0, 200);
+  M5.Lcd.printf("Scan an event to place\nthis event next to...");
+}
+
+void whichSide(const char* question, const char* description){
+  M5.Lcd.fillScreen(BLACK);
+  M5.Lcd.setCursor(0, 0);
+  M5.Lcd.printf(question);
+  M5.Lcd.setCursor(0, 160);
+  M5.Lcd.printf("Which side would you like to place %s?", description);
+  M5.Lcd.setCursor(0, 220);
+  M5.Lcd.printf("BEFORE");
+  M5.Lcd.setCursor(125, 220);
+  M5.Lcd.printf("CANCEL");
+  M5.Lcd.setCursor(260, 220);
+  M5.Lcd.printf("AFTER");
 }
 
 void forAgainst(const char* forList[], const char* againstList[], int forLength, int againstLength){
